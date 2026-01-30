@@ -39,29 +39,36 @@ class Emailer:
     def _get_subject(self, lead, template):
         """Generate email subject"""
         score = lead.get('score', 0)
-        if template == 'initial':
-            return f"Interested in {lead.get('address', 'your property')}"
-        elif template == 'followup':
-            return f"Following up - {lead.get('address', 'property')}"
-        else:
-            return f"Cash offer for {lead.get('address', 'your property')}"
+        address = lead.get('address', 'your property').split(',')[0]  # Just street address
+
+        subjects = {
+            'initial': f"Quick question about {address}",
+            'followup': f"Following up - {address}",
+            'cash_offer': f"Cash offer for {address}",
+            'urgent': f"Urgent - {address}",
+            'data_point': f"Data point for {address}",
+        }
+        return subjects.get(template, subjects['initial'])
 
     def _get_body(self, lead, template):
         """Generate email body based on template"""
-        score = lead.get('score', 0)
+        agent_name = lead.get('agent_name', 'there').split()[0]  # First name only
         address = lead.get('address', 'your property')
-        agent_name = lead.get('agent_name', 'there')
+        price = lead.get('current_price', 0)
+        days = lead.get('listing_days', 0)
+        score = lead.get('score', 0)
+        category, _ = self._get_category(score)
 
         templates = {
             'initial': f"""Hi {agent_name},
 
-I noticed the property at {address} has been on the market for a while and may not be getting the attention it deserves.
+I noticed the property at {address} has been on the market for {days} days.
 
-I'm a real estate investor who works with motivated sellers in the St. Petersburg area. If your client is open to exploring options, I'd love to discuss how I might help.
+As a local real estate investor, I work with sellers who need flexibility and speed. If your client is open to exploring options, I'd love to discuss how I might help.
 
-I'm particularly interested in properties where the seller needs a quick, hassle-free solution.
+I'm not looking to list the property — I'm interested in a direct purchase that could close in as little as 7 days.
 
-Would you have a few minutes for a quick call this week?
+Would you have 2 minutes for a quick call this week?
 
 Best regards
 
@@ -69,11 +76,13 @@ Best regards
 
             'followup': f"""Hi {agent_name},
 
-Following up on my previous email about {address}.
+Following up on my email about {address}.
 
-I understand the market can be challenging, and I'm here to help if your client is looking for options.
+I understand the market can be challenging, and I'm here to help if your client is looking for alternatives to the traditional listing process.
 
-Would you be open to a brief conversation?
+If you're open to it, I'd welcome the chance to discuss how I might be able to help your client sell quickly.
+
+No pressure at all — just wanted to make sure you saw my initial message.
 
 Best regards
 
@@ -81,11 +90,39 @@ Best regards
 
             'cash_offer': f"""Hi {agent_name},
 
-I'm prepared to make a fair cash offer on {address} with a quick closing.
+I wanted to reach out directly about {address}.
 
-If your client is looking to sell without the traditional listing process, I can provide a straightforward solution.
+I'm prepared to make a fair, all-cash offer with a quick closing timeline — as fast as 7 days if needed. No listing, no showings, no hassle.
 
-Are you available for a quick call?
+Given that the property has been on the market for {days} days, I thought your client might be open to a different approach.
+
+Would you be available for a brief call to discuss?
+
+Best regards
+
+{EMAIL_SIGNATURE}""",
+
+            'urgent': f"""Hi {agent_name},
+
+I'm reaching out urgently about {address} — I know time matters when a property has been on the market for {days} days.
+
+I'm a cash buyer who can close this week. No contingencies, no financing delays.
+
+If your client is motivated to sell, I can make this happen quickly and cleanly.
+
+Can we talk today?
+
+Best regards
+
+{EMAIL_SIGNATURE}""",
+
+            'data_point': f"""Hi {agent_name},
+
+I wanted to share some data about {address} that's on the market for {days} days at ${price:,}.
+
+As a local investor, I'm tracking properties in this area and wanted to reach out before your client considers another price reduction.
+
+If you're open to it, I'd welcome the opportunity to discuss a direct purchase option that could save your client time and uncertainty.
 
 Best regards
 
@@ -93,6 +130,17 @@ Best regards
         }
 
         return templates.get(template, templates['initial'])
+
+    def _get_category(self, score):
+        """Get category based on score"""
+        if score >= 85:
+            return 'URGENT', 'Contact immediately'
+        elif score >= 70:
+            return 'HIGH', 'Reach out within 24-48hrs'
+        elif score >= 50:
+            return 'MODERATE', 'Monitor'
+        else:
+            return 'LOW', 'Not a priority'
 
     def send_batch(self, leads, template='initial'):
         """Send emails to multiple leads"""
