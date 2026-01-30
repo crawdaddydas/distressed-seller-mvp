@@ -1,10 +1,13 @@
 """Simple web server for Railway deployment"""
 import os
+import sys
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from flask import Flask, jsonify, request
 from datetime import datetime
-from collector import PropertyCollector
-from scorer import DistressScorer
-from emailer import Emailer
+from src.collector import PropertyCollector
+from src.scorer import DistressScorer
+from src.emailer import Emailer
 from config import DISTRESS_THRESHOLD
 
 app = Flask(__name__)
