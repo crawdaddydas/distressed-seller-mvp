@@ -7,8 +7,8 @@ load_dotenv()
 # API Keys
 HASDATA_API_KEY = os.getenv('HASDATA_API_KEY', '')
 
-# Database
-DATABASE_URL = os.getenv('DATABASE_URL', 'postgresql://localhost/distressed_sellers')
+# Database (SQLite for MVP - no Docker needed)
+DATABASE_URL = os.getenv('DATABASE_URL', 'sqlite:///data/distressed_sellers.db')
 
 # Gmail
 GMAIL_USER = os.getenv('GMAIL_USER', '')

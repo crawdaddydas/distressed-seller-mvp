@@ -1,0 +1,7 @@
+# Crontab setup for Distressed Seller MVP
+# Run daily at 6:00 AM EST
+0 6 * * * /path/to/distressed-seller-mvp/scripts/daily_scan.sh >> /path/to/distressed-seller-mvp/logs/cron.log 2>&1
+
+# To install:
+# crontab -e
+# Add the line above (with actual paths)
